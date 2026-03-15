@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Academy | Interactive Learning</title>
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #f093fb;
+            --glass: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background: radial-gradient(circle at center, #1e3c72, #2a5298, #000);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* Animatsiyali fon elementlari */
+        .bg-blob {
+            position: fixed;
+            width: 300px; height: 300px;
+            background: var(--accent);
+            filter: blur(100px);
+            border-radius: 50%;
+            z-index: -1;
+            animation: move 10s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-50%, -50%); }
+            to { transform: translate(50%, 50%); }
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+            display: none; /* JavaScript orqali ko'rsatiladi */
+        }
+
+        /* Ro'yxatdan o'tish */
+        #auth-section { display: block; text-align: center; }
+        
+        h1 { font-size: 2.5rem; margin-bottom: 20px; background: linear-gradient(to right, #00f2fe, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        input {
+            width: 80%; padding: 15px; margin: 10px 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--primary);
+            border-radius: 15px; color: white; font-size: 1rem;
+        }
+
+        button {
+            padding: 15px 40px; border-radius: 15px; border: none;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+            margin-top: 20px; box-shadow: 0 5px 15px rgba(0, 242, 254, 0.4);
+        }
+
+        button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 242, 254, 0.6); }
+
+        /* Asosiy Menu Layout */
+        .main-layout { display: grid; grid-template-columns: 250px 1fr; gap: 20px; }
+
+        .sidebar { border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px; }
+
+        .profile-box { text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 20px; margin-bottom: 20px; }
+        
+        .avatar { width: 80px; height: 80px; background: var(--accent); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+
+        .content-area { height: 500px; overflow-y: auto; padding-right: 10px; }
+        .content-area::-webkit-scrollbar { width: 5px; }
+        .content-area::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        .item-card {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid transparent; transition: 0.3s;
+        }
+        .item-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+
+        .badge { padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; background: var(--secondary); }
+    </style>
+</head>
+<body>
+
+    <div class="bg-blob"></div>
+
+    <div id="auth-section" class="container" style="display: block; max-width: 500px;">
+        <h1>Python Learning</h1>
+        <p>Bilimlar olamiga xush kelibsiz!</p>
+        <input type="text" id="name" placeholder="Ismingiz">
+        <input type="text" id="surname" placeholder="Familiyangiz">
+        <button onclick="login()">O'qishni boshlash</button>
+    </div>
+
+    <div id="main-platform" class="container">
+        <div class="main-layout">
+            <div class="sidebar">
+                <div class="profile-box">
+                    <div class="avatar" id="avatar-icon">👤</div>
+                    <h3 id="user-display-name">User Name</h3>
+                    <p style="color: var(--accent); font-size: 0.9rem;" id="user-rank">Yangi o'quvchi</p>
+                </div>
+                <div class="profile-box">
+                    <p>Level: <strong id="level-val">1</strong></p>
+                    <p>Ball: <strong id="score-val">0</strong></p>
+                </div>
+                <button onclick="showSection('lessons')" style="width: 100%; margin-top: 5px;">📚 Darslar</button>
+                <button onclick="showSection('tests')" style="width: 100%; margin-top: 5px; background: var(--accent);">📝 Testlar</button>
+            </div>
+
+            <div class="content-area" id="content-screen">
+                <h2 id="section-title">150 ta Python Asoslari darslari</h2>
+                <div id="list-container">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userData = { name: '', level: 1, score: 0 };
+
+        function login() {
+            const name = document.getElementById('name').value;
+            const surname = document.getElementById('surname').value;
+            if(name && surname) {
+                userData.name = name + " " + surname;
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('main-platform').style.display = 'block';
+                document.getElementById('user-display-name').innerText = userData.name;
+                document.getElementById('avatar-icon').innerText = name[0].toUpperCase();
+                showSection('lessons');
+            } else {
+                alert("Iltimos ma'lumotlarni to'ldiring!");
+            }
+        }
+
+        function showSection(type) {
+            const container = document.getElementById('list-container');
+            const title = document.getElementById('section-title');
+            container.innerHTML = '';
+            
+            if(type === 'lessons') {
+                title.innerText = "150 ta Python Darsliklari";
+                for(let i = 1; i <= 150; i++) {
+                    container.innerHTML += `
+                        <div class="item-card">
+                            <span>Dars #${i}: Python asoslari va mantiq</span>
+                            <span class="badge">Bepul</span>
+                        </div>`;
+                }
+            } else {
+                title.innerText = "130 ta Amaliy Testlar";
+                for(let i = 1; i <= 130; i++) {
+                    container.innerHTML += `
+                        <div class="item-card">
+                            <span>Test #${i}: O'zgaruvchilar va operatorlar</span>
+                            <button onclick="completeTest()" style="padding: 5px 15px; margin:0; font-size:0.8rem;">Yechish</button>
+                        </div>`;
+                }
+            }
+        }
+
+        function completeTest() {
+            userData.score += 10;
+            if(userData.score % 50 === 0) {
+                userData.level++;
+                updateRank();
+            }
+            document.getElementById('score-val').innerText = userData.score;
+            document.getElementById('level-val').innerText = userData.level;
+            alert("Ball topladingiz! Tabriklaymiz.");
+        }
+
+        function updateRank() {
+            let rank = "Yangi o'quvchi";
+            if(userData.level > 10) rank = "Python Master";
+            else if(userData.level > 5) rank = "Bilimdon";
+            else if(userData.level > 2) rank = "Junior";
+            document.getElementById('user-rank').innerText = rank;
+        }
+    </script>
+</body>
+</html>
