@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jonli Batareya Vidjeti</title>
+    <style>
+        /* Asosiy Dizayn */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Orqa fondagi harakatlanuvchi doiralar */
+        .background-blobs {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .blob {
+            position: absolute;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            filter: blur(80px);
+            border-radius: 50%;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(0, 0); }
+            to { transform: translate(200px, 100px); }
+        }
+
+        /* Shaffof Glassmorphism Card */
+        .container {
+            position: relative;
+            width: 350px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 {
+            font-weight: 500;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        /* Batareya Grafikasi */
+        .battery-shape {
+            position: relative;
+            width: 120px;
+            height: 220px;
+            border: 4px solid rgba(255,255,255,0.2);
+            margin: 0 auto;
+            border-radius: 20px;
+            padding: 5px;
+        }
+
+        .battery-shape::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .battery-level {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            width: calc(100% - 10px);
+            height: 0%; /* JS orqali o'zgaradi */
+            background: linear-gradient(to top, #00ff87, #60efff);
+            border-radius: 15px;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(0, 255, 135, 0.5);
+        }
+
+        /* Jonli To'lqin Animatsiyasi */
+        .battery-level::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.3);
+            filter: blur(5px);
+            animation: liquid 2s linear infinite;
+        }
+
+        @keyframes liquid {
+            0% { transform: translateY(0) scaleX(1); }
+            50% { transform: translateY(-2px) scaleX(1.05); }
+            100% { transform: translateY(0) scaleX(1); }
+        }
+
+        /* Ma'lumotlar */
+        .details {
+            margin-top: 30px;
+        }
+
+        .percentage {
+            font-size: 3em;
+            font-weight: 700;
+        }
+
+        .status {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .charging-icon {
+            display: none;
+            color: #f1c40f;
+            margin-left: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-blobs">
+        <div class="blob" style="width: 300px; height: 300px; top: -100px; left: -100px;"></div>
+        <div class="blob" style="width: 200px; height: 200px; bottom: -50px; right: -50px; background: #ff0080;"></div>
+    </div>
+
+    <div class="container">
+        <h2>Battery Status</h2>
+        
+        <div class="battery-shape">
+            <div class="battery-level" id="batteryLevel"></div>
+        </div>
+
+        <div class="details">
+            <div class="percentage" id="percentage">--%</div>
+            <div class="status" id="status">Aniqlanmoqda...</div>
+        </div>
+    </div>
+
+    <script>
+        const batteryLevel = document.getElementById('batteryLevel');
+        const percentage = document.getElementById('percentage');
+        const statusText = document.getElementById('status');
+
+        function updateBattery() {
+            navigator.getBattery().then(battery => {
+                
+                function updateAllDetails() {
+                    updateLevel();
+                    updateChargeInfo();
+                }
+                updateAllDetails();
+
+                // Quvvat foizi o'zgarganda
+                battery.addEventListener('levelchange', () => {
+                    updateLevel();
+                });
+
+                // Quvvatga ulanganda yoki uzilganda
+                battery.addEventListener('chargingchange', () => {
+                    updateChargeInfo();
+                });
+
+                function updateLevel() {
+                    let level = Math.floor(battery.level * 100);
+                    percentage.innerHTML = level + "%";
+                    batteryLevel.style.height = level + "%";
+
+                    // Ranglarni o'zgartirish
+                    if(level <= 20) {
+                        batteryLevel.style.background = "linear-gradient(to top, #ff416c, #ff4b2b)";
+                        batteryLevel.style.boxShadow = "0 0 20px rgba(255, 65, 108, 0.5)";
+                    } else if(level <= 50) {
+                        batteryLevel.style.background = "linear-gradient(to top, #f83600, #f9d423)";
+                    } else {
+                        batteryLevel.style.background = "linear-gradient(to top, #00ff87, #60efff)";
+                    }
+                }
+
+                function updateChargeInfo() {
+                    if(battery.charging) {
+                        statusText.innerHTML = "Quvvatlanmoqda ⚡";
+                        statusText.style.color = "#f1c40f";
+                    } else {
+                        statusText.innerHTML = "Batareyada ishlamoqda";
+                        statusText.style.color = "#fff";
+                    }
+                }
+            });
+        }
+
+        if ('getBattery' in navigator) {
+            updateBattery();
+        } else {
+            statusText.innerHTML = "Brauzeringiz qo'llab-quvvatlamaydi";
+        }
+    </script>
+</body>
+</html>
